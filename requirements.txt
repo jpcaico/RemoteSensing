@@ -1,0 +1,7 @@
+gdal
+fiona
+pydantic
+geopandas
+matplotlib
+geojson
+folium
