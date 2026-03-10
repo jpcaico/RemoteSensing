@@ -1,3 +1,5 @@
+# computed fields
+
 # Decorators
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
@@ -12,7 +14,8 @@ from pydantic import (
     ValidationError,
     ValidationInfo,
     field_validator,
-    model_validator
+    model_validator,
+    computed_field
 )
 
 class User(BaseModel):
@@ -25,8 +28,11 @@ class User(BaseModel):
     password: SecretStr
     verified_at: datetime | None = None
     bio: str = ""
+    first_name: str = ""
+    last_name: str = ""
+    follower_count: int = 0
     is_active: bool = True
-    full_name: str | None = None
+ 
 
     @field_validator("username")
     @classmethod
@@ -43,6 +49,18 @@ class User(BaseModel):
             return f"https://{v}"
         return v
     
+    @computed_field
+    @property
+    def display_name(self) -> str:
+        if self.first_name and self.last_name:
+            return f"{self.first_name} {self.last_name}"
+        return self.username
+    
+    @computed_field
+    @property
+    def is_influencer(self) -> bool:
+        return self.follower_count > 1000
+    
 # model validator
 
 class UserRegistration(BaseModel):
@@ -57,26 +75,31 @@ class UserRegistration(BaseModel):
         return self
     
 
-try:
-    registration = UserRegistration(
-        email="joao@gmail.com",
-        password="secret123",
-        confirm_password="secret456"
-    )
-except ValidationError as e:
-    print(e)
+# try:
+#     registration = UserRegistration(
+#         email="joao@gmail.com",
+#         password="secret123",
+#         confirm_password="secret456"
+#     )
+# except ValidationError as e:
+#     print(e)
 
+
+
+
+user = User(
+    username="Joao_Paulo",
+    email="Joao@gmail.com",
+    age=29,
+    password="secret!23",
+    #error, does not start with http or https
+    website="jp.com",
+    first_name="JP",
+    last_name="Alvim",
+    follower_count=10000
+)
+
+print(user.model_dump_json(indent=2))
     
 
 
-
-# user = User(
-#     username="Joao_Paulo",
-#     email="Joao@gmail.com",
-#     age=29,
-#     password="secret!23",
-#     #error, does not start with http or https
-#     website="jp.com"
-# )
-
-# print(user)
